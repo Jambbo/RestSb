@@ -2,6 +2,7 @@ package com.example.restsb.service.impl;
 
 import com.example.restsb.domain.Result;
 import com.example.restsb.domain.Stock;
+import com.example.restsb.exceptions.ValidationException;
 import com.example.restsb.repository.ResultRepository;
 import com.example.restsb.repository.StockRepository;
 import com.example.restsb.service.StockService;
@@ -19,6 +20,8 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +73,9 @@ public class StockServiceImpl implements StockService {
     @Override
     public List<SavedStockDataDto> getStocksByTicker(String ticker) {
         List<Stock> stocks =  stockRepository.findStocksByTicker(ticker);
-
+        if(stocks.isEmpty()){
+            throw new ValidationException("Unknown ticker: "+ticker);
+        }
         return stocks.stream().map(stock -> {
             SavedStockDataDto savedStockDataDto = SavedStockDataDto.builder()
                     .id(stock.getId().toString())

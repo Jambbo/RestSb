@@ -7,6 +7,7 @@ import com.example.restsb.service.StockService;
 import com.example.restsb.service.TickerService;
 import com.example.restsb.web.dto.SavedStockDataDto;
 import com.example.restsb.web.dto.TickerRequestDto;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
+@Tag(name = "User Controller", description = "User API")
 public class UserController {
 
     private final StockService stockService;

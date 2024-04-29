@@ -7,6 +7,7 @@ import com.example.restsb.web.dto.UserDto;
 import com.example.restsb.web.dto.auth.JwtRequest;
 import com.example.restsb.web.dto.auth.JwtResponse;
 import com.example.restsb.web.mappers.UserMapper;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
+@Tag(name = "Auth Controller",description = "Auth API")
 public class AuthController {
     private final UserService userService;
     private final UserMapper userMapper;
