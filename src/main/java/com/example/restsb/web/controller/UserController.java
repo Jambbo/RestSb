@@ -10,6 +10,7 @@ import com.example.restsb.web.dto.TickerRequestDto;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -28,6 +29,8 @@ public class UserController {
 
     private final StockService stockService;
     private final TickerService tickerService;
+    @Value("${api.key}")
+    private String apiKey;
 
     @PostMapping("/save")
     public ResponseEntity<String> saveStockInfo(@RequestBody TickerRequestDto request){
@@ -45,7 +48,7 @@ public class UserController {
         RestTemplate restTemplate = new RestTemplate();
 
         String url = "https://api.polygon.io/v2/aggs/ticker/"+request.getTicker()+
-                "/range/1/day/"+startDate+"/"+endDate+"?apiKey=DUEYl5LGY5Bn0jgAFYAnGcWX1DmBjoiQ";
+                "/range/1/day/"+startDate+"/"+endDate+"?apiKey="+apiKey;
         ResponseEntity<String> response = restTemplate.getForEntity(url,String.class);
 
         stockService.saveStockData(response.getBody());

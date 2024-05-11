@@ -18,3 +18,5 @@ security:
     access: 1
     refresh: 30
 
+api:
+  key: DUEYl5LGY5Bn0jgAFYAnGcWX1DmBjoiQ
