@@ -1,22 +1,27 @@
 package com.example.restsb.service.impl;
 
+import com.example.restsb.client.PolygonClient;
 import com.example.restsb.domain.Result;
 import com.example.restsb.domain.Stock;
 import com.example.restsb.exceptions.ValidationException;
 import com.example.restsb.repository.ResultRepository;
 import com.example.restsb.repository.StockRepository;
 import com.example.restsb.service.StockService;
+import com.example.restsb.service.validators.Validator;
 import com.example.restsb.web.dto.SavedStockDataDto;
 import com.example.restsb.web.dto.StockDataDto;
+import com.example.restsb.web.dto.TickerRequestDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,46 +31,26 @@ import java.util.stream.Collectors;
 public class StockServiceImpl implements StockService {
     private final StockRepository stockRepository;
     private final ResultRepository resultRepository;
+    private final PolygonClient client;
+    private final Validator validator;
     @Override
-    public void saveStockData(String responseBody) {
-        ObjectMapper mapper = new ObjectMapper();
-        try{
-            JsonNode responseNode = mapper.readTree(responseBody);
-            JsonNode resultsNode = responseNode.get("results");
-            Stock stock = Stock.builder()
-                    .ticker(responseNode.get("ticker").asText())
-                    .queryCount(responseNode.get("queryCount").asLong())
-                    .resultsCount(responseNode.get("resultsCount").asLong())
-                    .isAdjusted(responseNode.get("adjusted").asBoolean())
-                    .status(responseNode.get("status").asText())
-                    .requestId(responseNode.get("request_id").asText())
-                    .count(responseNode.get("count").asInt())
-                    .build();
-            List<Result> resultList = new ArrayList<>();
-
-                for(JsonNode resultNode : resultsNode){
-                    Long time = resultNode.get("t").asLong();
-                    Result result = Result.builder()
-                            .stock(stock)
-                            .volumePrice(resultNode.get("v").asLong())
-                            .volumeWeightPrice(resultNode.get("vw").asDouble())
-                            .openPrice(resultNode.get("o").asDouble())
-                            .closePrice(resultNode.get("c").asDouble())
-                            .highPrice(resultNode.get("h").asDouble())
-                            .lowPrice(resultNode.get("l").asDouble())
-                            .time(time)
-                            .numberOfTransactions(resultNode.get("n").asLong())
-                            .build();
-                            if((resultRepository.findByTimeAndTicker(time,stock.getTicker())).isPresent()){
-                                continue;
-                            }
-                    resultList.add(result);
-                }
-                stock.setResults(resultList);
-                stockRepository.save(stock);
-        }catch (JsonProcessingException e){
-            e.printStackTrace();
-        }
+    public void saveStockData(TickerRequestDto request) throws JsonProcessingException, URISyntaxException {
+        validator.isAfter(request);
+        validator.isTickerNull(request);
+        RestTemplate restTemplate = new RestTemplate();
+        URI uri = client.getUri(request);
+        ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+        Stock stock = objectMapper.readValue(response.getBody(), Stock.class);
+        List<Result> results = stock.getResults();
+        results.forEach(r -> r.setStock(stock));
+        stockRepository.save(stock);
+        List<Result> existingResults = resultRepository.findAllByStockAndTIn(stock.getId(), results.stream().map(Result::getTime).collect(Collectors.toList()));
+        List<Result> newResults = results.stream()
+                .filter(r -> existingResults.stream().noneMatch(er -> er.getTime().equals(r.getTime())))
+                .toList();
+        stock.setResults(newResults);
+        resultRepository.saveAll(results);
     }
 
     @Override
