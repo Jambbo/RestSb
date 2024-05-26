@@ -15,13 +15,13 @@ public class PolygonClient {
     @Value("${api.key}")
     private String apiKey;
 
-    public URI getUri(TickerRequestDto request) throws URISyntaxException {
+    public String getUri(TickerRequestDto request) throws URISyntaxException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String startDate = request.getStart().format(formatter);
         String endDate = request.getEnd().format(formatter);
 
-        return URI.create("https://api.polygon.io/v2/aggs/ticker/"+request.getTicker()+
-                "/range/1/day/"+startDate+"/"+endDate+"?apiKey="+apiKey);
+        return "https://api.polygon.io/v2/aggs/ticker/"+request.getTicker()+
+                "/range/1/day/"+startDate+"/"+endDate+"?apiKey="+apiKey;
     }
 
 }

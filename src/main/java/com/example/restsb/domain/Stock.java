@@ -31,7 +31,7 @@ public class Stock {
     private Boolean isAdjusted;
 
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "stock_id")
     @JsonProperty("results")
     private List<Result> results = new ArrayList<>();
