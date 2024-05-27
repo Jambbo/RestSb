@@ -1,96 +1,90 @@
 package com.example.restsb.service.impl;
 
+import com.example.restsb.client.PolygonClient;
 import com.example.restsb.domain.Result;
 import com.example.restsb.domain.Stock;
 import com.example.restsb.exceptions.ValidationException;
 import com.example.restsb.repository.ResultRepository;
 import com.example.restsb.repository.StockRepository;
 import com.example.restsb.service.StockService;
+import com.example.restsb.validators.Validator;
 import com.example.restsb.web.dto.SavedStockDataDto;
-import com.example.restsb.web.dto.StockDataDto;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.restsb.web.dto.TickerRequestDto;
+import com.example.restsb.web.mappers.StockMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 
 @Service
 @RequiredArgsConstructor
 public class StockServiceImpl implements StockService {
+    private final PolygonClient client;
     private final StockRepository stockRepository;
+    private final Validator validator;
+    private final StockMapper stockMapper;
     private final ResultRepository resultRepository;
-    @Override
-    public void saveStockData(String responseBody) {
-        ObjectMapper mapper = new ObjectMapper();
-        try{
-            JsonNode responseNode = mapper.readTree(responseBody);
-            JsonNode resultsNode = responseNode.get("results");
-            Stock stock = Stock.builder()
-                    .ticker(responseNode.get("ticker").asText())
-                    .queryCount(responseNode.get("queryCount").asLong())
-                    .resultsCount(responseNode.get("resultsCount").asLong())
-                    .isAdjusted(responseNode.get("adjusted").asBoolean())
-                    .status(responseNode.get("status").asText())
-                    .requestId(responseNode.get("request_id").asText())
-                    .count(responseNode.get("count").asInt())
-                    .build();
-            List<Result> resultList = new ArrayList<>();
 
-                for(JsonNode resultNode : resultsNode){
-                    Long time = resultNode.get("t").asLong();
-                    Result result = Result.builder()
-                            .stock(stock)
-                            .volumePrice(resultNode.get("v").asLong())
-                            .volumeWeightPrice(resultNode.get("vw").asDouble())
-                            .openPrice(resultNode.get("o").asDouble())
-                            .closePrice(resultNode.get("c").asDouble())
-                            .highPrice(resultNode.get("h").asDouble())
-                            .lowPrice(resultNode.get("l").asDouble())
-                            .time(time)
-                            .numberOfTransactions(resultNode.get("n").asLong())
-                            .build();
-                            if((resultRepository.findByTimeAndTicker(time,stock.getTicker())).isPresent()){
-                                continue;
-                            }
-                    resultList.add(result);
-                }
-                stock.setResults(resultList);
-                stockRepository.save(stock);
-        }catch (JsonProcessingException e){
-            e.printStackTrace();
-        }
+    @SneakyThrows
+    @Override
+    @Transactional
+    @Cacheable(value = "StockService::saveStockData",key="#request")
+    public void saveStockData(TickerRequestDto request) {
+        validator.dateValidation(request);
+        validator.isTickerNull(request);
+        ResponseEntity<Stock> stockResponseEntity = client.contactToGetStock(request);
+        Stock stock = stockResponseEntity.getBody();
+        validator.isStockNull(stock);
+        List<Result> results = stock.getResults();
+        List<Result> res = resultRepository.findByTimeRangeAndTicker(
+                request.getStart().atStartOfDay().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli(),
+                request.getEnd().atStartOfDay().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli(),
+                stock.getTicker());
+       List<Result> newResults = new ArrayList<>();
+       for(Result r:results){
+           Long time = r.getTime();
+           boolean found = false;
+           for(Result rr:res){
+               if(Objects.equals(rr.getTime(),time)){
+                   found = true;
+                   break;
+               }
+           }
+           if(!found) {
+               r.setStock(stock);
+               newResults.add(r);
+           }
+       }
+
+
+//       for(Result r: results){
+//           if(resultRepository.findByTimeAndTicker(r.getTime(),stock.getTicker()).isPresent()){
+//               continue;
+//           }
+//           r.setStock(stock);
+//           newResults.add(r);
+//       }
+        stock.setResults(newResults);
+        stockRepository.save(stock);
     }
+
 
     @Override
     public List<SavedStockDataDto> getStocksByTicker(String ticker) {
-        List<Stock> stocks =  stockRepository.findStocksByTicker(ticker);
-        if(stocks.isEmpty()){
-            throw new ValidationException("Unknown ticker: "+ticker);
+        List<Stock> stocks = stockRepository.findStocksByTicker(ticker);
+        if (stocks.isEmpty()) {
+            throw new ValidationException("Unknown ticker: " + ticker);
         }
-        return stocks.stream().map(stock -> {
-            SavedStockDataDto savedStockDataDto = SavedStockDataDto.builder()
-                    .id(stock.getId().toString())
-                    .ticker(stock.getTicker())
-                    .data(stock.getResults().stream().map(result -> {
-                        StockDataDto stockDataDto = StockDataDto.builder()
-                                .date(Instant.ofEpochMilli(result.getTime()).atZone(ZoneId.systemDefault()).toLocalDate())
-                                .open(result.getOpenPrice())
-                                .close(result.getClosePrice())
-                                .high(result.getHighPrice())
-                                .low(result.getLowPrice())
-                                .build();
-                            return stockDataDto;
-                    }).collect(Collectors.toList()))
-                    .build();
-            return savedStockDataDto;
-        }).collect(Collectors.toList());
-
+        return stockMapper.stocksToSavedStockDataDtos(stocks);
     }
 }

@@ -2,7 +2,7 @@ package com.example.restsb.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +24,7 @@ public class Stock {
     private Long queryCount;
     private Long resultsCount;
 
+    @JsonProperty("adjusted")
     @Column(name = "adjusted", columnDefinition = "BOOLEAN")
     private Boolean isAdjusted;
 
@@ -35,6 +36,7 @@ public class Stock {
 
     private String status;
 
+    @JsonProperty("request_id")
     @Column(name = "request_id")
     private String requestId;
 

@@ -40,23 +40,6 @@ public class ApplicationConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean//bean для конфигурации сваггера
-    public OpenAPI openAPI(){
-        return new OpenAPI()
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))// для того чтобы каждый раз не вводить jwt токен, а 1 раз в хедере страницы
-                .components(new Components()
-                        .addSecuritySchemes("bearerAuth",
-                                new SecurityScheme()
-                                        .type(SecurityScheme.Type.HTTP)//то есть для хттп хапросов будет работать такая схема->
-                                        .scheme("bearer")
-                                        .bearerFormat("JWT")
-                        ))
-                .info(new Info()
-                        .title("RestSb API")
-                        .description("Demo Spring Boot App")
-                        .version("1.0"));
-        }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
