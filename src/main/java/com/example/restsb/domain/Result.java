@@ -3,8 +3,7 @@ package com.example.restsb.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "results")
@@ -20,26 +19,32 @@ public class Result {
 
     @JsonProperty("v")
     @Column(name = "volume")
+    @JsonProperty("v")
     private Long volumePrice;
 
     @JsonProperty("vw")
     @Column(name = "volume_weight")
+    @JsonProperty("vw")
     private Double volumeWeightPrice;
 
     @JsonProperty("o")
     @Column(name = "open")
+    @JsonProperty("o")
     private Double openPrice;
 
     @JsonProperty("c")
     @Column(name = "close")
+    @JsonProperty("c")
     private Double closePrice;
 
     @JsonProperty("h")
     @Column(name = "high")
+    @JsonProperty("h")
     private Double highPrice;
 
     @JsonProperty("l")
     @Column(name = "low")
+    @JsonProperty("l")
     private Double lowPrice;
 
     @JsonProperty("t")
@@ -47,9 +52,11 @@ public class Result {
 
     @JsonProperty("n")
     @Column(name = "number")
+    @JsonProperty("n")
     private Long numberOfTransactions;
 
     @ManyToOne
+    @JoinColumn(name = "stock_id")
     private Stock stock;
 
 }

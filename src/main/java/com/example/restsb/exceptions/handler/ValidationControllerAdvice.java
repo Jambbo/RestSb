@@ -1,4 +1,4 @@
-package com.example.restsb.web.controller;
+package com.example.restsb.exceptions.handler;
 
 import com.example.restsb.exceptions.ValidationErrorResponse;
 import com.example.restsb.exceptions.ValidationException;

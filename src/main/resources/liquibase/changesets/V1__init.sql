@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS stocks
     ticker VARCHAR(255)NOT NULL,
     query_count BIGINT NOT NULL,
     results_count BIGINT NOT NULL,
-    adjusted BOOLEAN NOT NULL,
+    adjusted BOOLEAN,
     status VARCHAR(255),
     request_id VARCHAR(255),
     count INT NOT NULL ,

@@ -1,5 +1,6 @@
 package com.example.restsb.client;
 
+
 import com.example.restsb.domain.Stock;
 import com.example.restsb.web.dto.TickerRequestDto;
 import lombok.AccessLevel;
@@ -28,5 +29,5 @@ public class PolygonClient {
                 "/range/1/day/"+startDate+"/"+endDate+"?apiKey="+apiKey;
         return restTemplate.getForEntity(url, Stock.class);
     }
-
 }
+
