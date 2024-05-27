@@ -4,21 +4,35 @@ import com.example.restsb.domain.Stock;
 import com.example.restsb.web.dto.SavedStockDataDto;
 import com.example.restsb.web.dto.StockDataDto;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", imports = {Instant.class, ZoneId.class})
+
+@Mapper(componentModel = "spring")
 public interface StockMapper {
 
 
-    @Mapping(target = "date", expression = "java(Instant.ofEpochMilli(stock.getResults().get(0).getTime()).atZone(ZoneId.systemDefault()).toLocalDate())")
-    StockDataDto toStockDataDto(Stock stock);
+    default List<SavedStockDataDto> stocksToSavedStockDataDtos(List<Stock> stocks) {
+        return stocks.stream().map(stock -> {
+            SavedStockDataDto savedStockDataDto = SavedStockDataDto.builder()
+                    .id(stock.getId().toString())
+                    .ticker(stock.getTicker())
+                    .data(stock.getResults().stream().map(result -> {
+                        StockDataDto stockDataDto = StockDataDto.builder()
+                                .date(Instant.ofEpochMilli(result.getTime()).atZone(ZoneId.systemDefault()).toLocalDate())
+                                .open(result.getOpenPrice())
+                                .close(result.getClosePrice())
+                                .high(result.getHighPrice())
+                                .low(result.getLowPrice())
+                                .build();
+                        return stockDataDto;
+                    }).collect(Collectors.toList()))
+                    .build();
+            return savedStockDataDto;
+        }).collect(Collectors.toList());
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "ticker", source = "ticker")
-    @Mapping(target = "data", source = "results")
-    SavedStockDataDto toSavedStockDataDto(Stock stock);
-
+    }
 }

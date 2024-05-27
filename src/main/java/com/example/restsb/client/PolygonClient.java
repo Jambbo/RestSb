@@ -1,27 +1,33 @@
 package com.example.restsb.client;
 
-import com.example.restsb.web.dto.TickerRequestDto;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.example.restsb.domain.Stock;
+import com.example.restsb.web.dto.TickerRequestDto;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
 import java.time.format.DateTimeFormatter;
 
-@Service
+@Component
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class PolygonClient {
     @Value("${api.key}")
-    private String apiKey;
+    String apiKey;
 
-    public String getUri(TickerRequestDto request) throws URISyntaxException {
+    public ResponseEntity<Stock> contactToGetStock(TickerRequestDto request){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String startDate = request.getStart().format(formatter);
         String endDate = request.getEnd().format(formatter);
-
-        return "https://api.polygon.io/v2/aggs/ticker/"+request.getTicker()+
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://api.polygon.io/v2/aggs/ticker/"+request.getTicker()+
                 "/range/1/day/"+startDate+"/"+endDate+"?apiKey="+apiKey;
+        return restTemplate.getForEntity(url, Stock.class);
     }
-
 }
+

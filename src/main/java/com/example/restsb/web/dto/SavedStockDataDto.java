@@ -13,8 +13,8 @@ import java.util.List;
 @Builder
 public class SavedStockDataDto {
 
-    private String id;
-    private String ticker;
-    private List<StockDataDto> data;
+     String id;
+     String ticker;
+     List<StockDataDto> data;
 
 }

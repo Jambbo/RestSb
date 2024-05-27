@@ -2,10 +2,11 @@ package com.example.restsb.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 import java.util.ArrayList;
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 @Entity
@@ -21,19 +22,16 @@ public class Stock {
     private Long id;
 
     private String ticker;
-
-    @JsonProperty("queryCount")
     private Long queryCount;
     private Long resultsCount;
 
-    @Column(name = "adjusted", columnDefinition = "BOOLEAN")
     @JsonProperty("adjusted")
+    @Column(name = "adjusted", columnDefinition = "BOOLEAN")
     private Boolean isAdjusted;
 
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "stock_id")
-    @JsonProperty("results")
     private List<Result> results = new ArrayList<>();
 
 
@@ -45,8 +43,4 @@ public class Stock {
 
     private Integer count;
 
-    public void addResult(Result result) {
-        result.setStock(this);
-        this.results.add(result);
-    }
 }
