@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,9 +46,9 @@ public class StockServiceImpl implements StockService {
         validator.isStockNull(stock);
         List<Result> results = stock.getResults();
         List<Result> res = resultRepository.findByTimeRangeAndTicker(
-                request.getStart().atStartOfDay().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli(),
-                request.getEnd().atStartOfDay().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli(),
-                stock.getTicker());
+                                    getUtc(request.getStart()),
+                                    getUtc(request.getEnd()),
+                                    stock.getTicker());
        List<Result> newResults = new ArrayList<>();
         findDuplicates(results, res, stock, newResults);
         stock.setResults(newResults);
@@ -63,7 +64,7 @@ public class StockServiceImpl implements StockService {
         return stockMapper.stocksToSavedStockDataDtos(stocks);
     }
 
-    private static void findDuplicates(List<Result> results, List<Result> res, Stock stock, List<Result> newResults) {
+    private void findDuplicates(List<Result> results, List<Result> res, Stock stock, List<Result> newResults) {
         for(Result r: results){
             Long time = r.getTime();
             boolean found = false;
@@ -78,5 +79,8 @@ public class StockServiceImpl implements StockService {
                 newResults.add(r);
             }
         }
+    }
+    private static long getUtc(LocalDate localDate) {
+        return localDate.atStartOfDay().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli();
     }
 }
