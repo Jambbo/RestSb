@@ -10,7 +10,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriBuilderFactory;
 
+import java.net.URI;
 import java.time.format.DateTimeFormatter;
 
 @Component
@@ -27,6 +30,7 @@ public class PolygonClient {
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://api.polygon.io/v2/aggs/ticker/"+request.getTicker()+
                 "/range/1/day/"+startDate+"/"+endDate+"?apiKey="+apiKey;
+
         return restTemplate.getForEntity(url, Stock.class);
     }
 }

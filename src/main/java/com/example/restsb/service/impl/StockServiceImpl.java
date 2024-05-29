@@ -49,33 +49,10 @@ public class StockServiceImpl implements StockService {
                 request.getEnd().atStartOfDay().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli(),
                 stock.getTicker());
        List<Result> newResults = new ArrayList<>();
-       for(Result r:results){
-           Long time = r.getTime();
-           boolean found = false;
-           for(Result rr:res){
-               if(Objects.equals(rr.getTime(),time)){
-                   found = true;
-                   break;
-               }
-           }
-           if(!found) {
-               r.setStock(stock);
-               newResults.add(r);
-           }
-       }
-
-
-//       for(Result r: results){
-//           if(resultRepository.findByTimeAndTicker(r.getTime(),stock.getTicker()).isPresent()){
-//               continue;
-//           }
-//           r.setStock(stock);
-//           newResults.add(r);
-//       }
+        findDuplicates(results, res, stock, newResults);
         stock.setResults(newResults);
         stockRepository.save(stock);
     }
-
 
     @Override
     public List<SavedStockDataDto> getStocksByTicker(String ticker) {
@@ -84,6 +61,23 @@ public class StockServiceImpl implements StockService {
             throw new ValidationException("Unknown ticker: " + ticker);
         }
         return stockMapper.stocksToSavedStockDataDtos(stocks);
+    }
+
+    private static void findDuplicates(List<Result> results, List<Result> res, Stock stock, List<Result> newResults) {
+        for(Result r: results){
+            Long time = r.getTime();
+            boolean found = false;
+            for(Result rr: res){
+                if(Objects.equals(rr.getTime(),time)){
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                r.setStock(stock);
+                newResults.add(r);
+            }
+        }
     }
 }
 

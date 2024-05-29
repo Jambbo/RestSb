@@ -13,8 +13,6 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface StockMapper {
-
-
     default List<SavedStockDataDto> stocksToSavedStockDataDtos(List<Stock> stocks) {
         return stocks.stream().map(stock -> {
             SavedStockDataDto savedStockDataDto = SavedStockDataDto.builder()
