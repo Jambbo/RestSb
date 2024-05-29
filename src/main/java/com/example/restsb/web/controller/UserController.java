@@ -19,12 +19,14 @@ public class UserController implements UserControllerDoc {
 
     private final StockService stockService;
 
+    @Override
     @PostMapping("/save")
     public ResponseEntity<String> saveStockInfo(@RequestBody TickerRequestDto request){
         stockService.saveStockData(request);
         return ResponseEntity.ok("Stock data fetched and saved successfully.");
     }
 
+    @Override
     @GetMapping("/saved{ticker}")
     public ResponseEntity<List<SavedStockDataDto>> getStockInfoByTicker(@PathVariable @RequestParam("ticker") String ticker){
         List<SavedStockDataDto> stocksByTicker = stockService.getStocksByTicker(ticker);
