@@ -4,9 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+
 
 @Entity
 @Table(name = "stocks")
@@ -36,9 +37,10 @@ public class Stock {
 
     private String status;
 
-    @JsonProperty("request_id")
     @Column(name = "request_id")
+    @JsonProperty("request_id")
     private String requestId;
 
     private Integer count;
+
 }

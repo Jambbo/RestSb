@@ -5,3 +5,8 @@ INSERT INTO users(name,username,password) VALUES
 
 INSERT INTO tickers(name) VALUES
 ('AAPL'),('GOOGL'),('AA'),('ADTH'),('AE'),('ANSS'),('AUB'),('BLRX');
+
+INSERT INTO users_roles(user_id,role)VALUES
+(
+ 1, 'USER'
+);

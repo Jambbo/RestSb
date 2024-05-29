@@ -1,7 +1,5 @@
 package com.example.restsb.web.controller;
 
-
-
 import com.example.restsb.service.StockService;
 import com.example.restsb.web.controller.docs.UserControllerDoc;
 import com.example.restsb.web.dto.SavedStockDataDto;
@@ -32,5 +30,5 @@ public class UserController implements UserControllerDoc {
         List<SavedStockDataDto> stocksByTicker = stockService.getStocksByTicker(ticker);
         return new ResponseEntity<>(stocksByTicker,HttpStatus.OK);
     }
-
 }
+
